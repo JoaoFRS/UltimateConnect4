@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#DCD5D5"
+    android:background="@drawable/background_soft"
     tools:context=".GameActivity">
 
     <LinearLayout
@@ -15,7 +15,7 @@
         android:layout_marginLeft="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:background="#3ab2e8"
+        android:background="#1B8BBF"
         android:orientation="vertical"
         android:paddingLeft="10dp"
         android:paddingTop="20dp"
@@ -76,7 +76,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:background="#C68401"
+        android:background="#2C1F05"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
@@ -87,11 +87,7 @@
         android:id="@+id/paint_diff"
         android:layout_width="0dp"
         android:layout_height="127dp"
-        android:layout_marginStart="1dp"
-        android:layout_marginLeft="1dp"
         android:layout_marginTop="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginRight="1dp"
         android:background="#A89F9F"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

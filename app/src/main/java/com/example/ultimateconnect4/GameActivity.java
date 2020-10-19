@@ -3,9 +3,11 @@ package com.example.ultimateconnect4;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -16,10 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Node;
-
 import java.util.LinkedList;
-import java.util.TimerTask;
+import java.util.Timer;
 
 public class GameActivity extends AppCompatActivity {
     Context mContext=this;
@@ -27,10 +27,12 @@ public class GameActivity extends AppCompatActivity {
     String difficulty;
     int[][] board=new int[6][7];
     private final int interval = 1;
+    private final int longinterval = 500;
     private Handler handler = new Handler();
     private Runnable runnable;
     ImageView myTurn, cpTurn;
-
+    int look_ahead;
+    private Timer t;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,13 +46,16 @@ public class GameActivity extends AppCompatActivity {
         TextView num_vit_me=findViewById(R.id.num_vitorias_jogador);
         TextView num_vit_computer=findViewById(R.id.num_vitorias_computador);
         if(difficulty.equals("easy")){
-            change_color.setBackgroundColor(Color.parseColor("#50D970"));
+            change_color.setBackgroundColor(Color.parseColor("#47a64a"));
+            look_ahead=1;
         }
         if(difficulty.equals("medium")){
-            change_color.setBackgroundColor(Color.parseColor("#CED41C"));
+            change_color.setBackgroundColor(Color.parseColor("#bbbf47"));
+            look_ahead=3;
         }
         if(difficulty.equals("hard")){
             change_color.setBackgroundColor(Color.parseColor("#CD3B3B"));
+            look_ahead=5;
         }
         LinearLayout l0=findViewById(R.id.l0); //j=0
         LinearLayout l1=findViewById(R.id.l1); //j=1
@@ -74,13 +79,13 @@ public class GameActivity extends AppCompatActivity {
              aux4.setImageResource(R.drawable.elipse_1);
              aux5.setImageResource(R.drawable.elipse_1);
              aux6.setImageResource(R.drawable.elipse_1);
-             aux0.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux1.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux2.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux3.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux4.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux5.setBackgroundColor(Color.parseColor("#40c4ff"));
-             aux6.setBackgroundColor(Color.parseColor("#40c4ff"));
+             aux0.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux1.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux2.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux3.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux4.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux5.setBackgroundColor(Color.parseColor("#1B8BBF"));
+             aux6.setBackgroundColor(Color.parseColor("#1B8BBF"));
              aux0.setPadding(20,0,20,0);
              aux1.setPadding(20,0,20,0);
              aux2.setPadding(20,0,20,0);
@@ -140,7 +145,6 @@ public class GameActivity extends AppCompatActivity {
              });
              aux5.setId(5*10+i);
              l5.addView(aux5,params);
-             Log.d("help",String.valueOf(i));
          }
     }
 
@@ -150,47 +154,114 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
         for(int i=0;i<6;i++){
-            Log.d("teste", "i-j: " + col + "-" + i);
             if(board[i][col]==0) {
                 final ImageButton imButton = findViewById(i * 10 + col);
                 board[i][col] = 1;
-                imButton.setImageResource(R.drawable.red);
-                move = 1;
-                cpTurn.setVisibility(View.VISIBLE);
-                myTurn.setVisibility(View.INVISIBLE);
-                int check = avaliador(board);
-                if (check == -512) {
-                    //U WON
-                    Toast.makeText(mContext, "U won", Toast.LENGTH_LONG).show();
-                }
-                else if(!moveleft(board)){
-                    Toast.makeText(mContext, "Tie", Toast.LENGTH_LONG).show();
-                }
-                else if (difficulty.equals("easy"))
-                    facil();
-                else if (difficulty.equals("medium"))
-                    medio();
-                else if (difficulty.equals("hard")) {
-                    runnable = new Runnable(){
-                        public void run() {
-                            LinkedList<Nodes> filhos = new LinkedList<>();
-                            Nodes pai = new Nodes(0, 0, filhos, board, 1);
-                            alphabeta(pai);
-                        }
-                    };
-                    handler.postDelayed(runnable, interval);
-                }
+                final int final_i=i;
+                final int final_coluna=col;
+                t=new java.util.Timer();
+                t.schedule(new java.util.TimerTask() {
+                    int j=5;
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                run_handler(j,final_coluna,final_i);
+                                j=j-1;
+                            }
+                        });
+                    }
+                },50,50);
                 return;
             }
         }
     }
-
-    public void facil(){
-
+    public void run_handler_opp(int j,int col,int i){
+        final ImageButton but =  findViewById(j*10+col);
+        if(j==5) {
+            but.setImageResource(R.drawable.yellow);
+        }
+        else{
+            final ImageButton but2 =  findViewById((j+1)*10+col);
+            but2.setImageResource(R.drawable.elipse_1);
+            but.setImageResource(R.drawable.yellow);
+        }
+        if(j==i) {
+            t.cancel();
+            int check=avaliador(board);
+            if(check==512){
+                runnable = new Runnable(){
+                    public void run() {
+                        Intent lost =new Intent(mContext,LoseActivity.class);
+                        startActivity(lost);
+                    }
+                };
+                handler.postDelayed(runnable, interval);
+            }
+            else if(!moveleft(board)){
+                runnable = new Runnable(){
+                    public void run() {
+                        Intent tie =new Intent(mContext,TieActivity.class);
+                        startActivity(tie);
+                    }
+                };
+                handler.postDelayed(runnable, interval);
+            }
+            move=0;
+            myTurn.setVisibility(View.VISIBLE);
+            cpTurn.setVisibility(View.INVISIBLE);
+        }
     }
 
-    public void medio(){
-
+    public void run_handler(int j, int col,int i){
+        Log.d("j",String.valueOf(j));
+        Log.d("i",String.valueOf(i));
+        final ImageButton but =  findViewById(j*10+col);
+        if(j==5) {
+            but.setImageResource(R.drawable.red);
+        }
+        else{
+            final ImageButton but2 =  findViewById((j+1)*10+col);
+            but2.setImageResource(R.drawable.elipse_1);
+            but.setImageResource(R.drawable.red);
+        }
+        if(j==i){
+            t.cancel();
+            move = 1;
+            cpTurn.setVisibility(View.VISIBLE);
+            myTurn.setVisibility(View.INVISIBLE);
+            int check = avaliador(board);
+            if (check == -512) {
+                //U WON
+                runnable = new Runnable(){
+                    public void run() {
+                        Intent won =new Intent(mContext,WinActivity.class);
+                        startActivity(won);
+                    }
+                };
+                handler.postDelayed(runnable, longinterval);
+            }
+            else if(!moveleft(board)){
+                runnable = new Runnable(){
+                    public void run() {
+                        Intent tie =new Intent(mContext,TieActivity.class);
+                        startActivity(tie);
+                    }
+                };
+                handler.postDelayed(runnable, longinterval);
+            }
+            else{
+                runnable = new Runnable(){
+                    public void run() {
+                        LinkedList<Nodes> filhos = new LinkedList<>();
+                        Nodes pai = new Nodes(0, 0, filhos, board, 1);
+                        alphabeta(pai);
+                    }
+                };
+                handler.postDelayed(runnable, interval);
+            }
+        }
     }
 
     public int avaliador(int[][] aaa){
@@ -270,7 +341,7 @@ public class GameActivity extends AppCompatActivity {
             return aux;
         }
         else if (conta_computador==3){
-            aux=50;
+            aux=look_ahead*10;
             return aux;
         }
         else if (conta_computador==4){
@@ -286,7 +357,7 @@ public class GameActivity extends AppCompatActivity {
             return aux;
         }
         else if (conta_outro==3){
-            aux=-50;
+            aux=-look_ahead*10;
             return aux;
         }
         else if (conta_outro==4){
@@ -347,7 +418,6 @@ public class GameActivity extends AppCompatActivity {
         maximizar_retorno=atual.filhos.get(0).custo;
         retorno=atual.filhos.get(0);
         for(int i=1;i<atual.filhos.size();i++) {
-            Log.d("custo ", Integer.toString(atual.filhos.get(i).custo));
             if (atual.filhos.get(i).custo > maximizar_retorno) {
                 retorno = atual.filhos.get(i);
                 maximizar_retorno = atual.filhos.get(i).custo;
@@ -357,20 +427,22 @@ public class GameActivity extends AppCompatActivity {
             if(board[i][retorno.coluna]==0){
                 ImageButton ib = findViewById(i * 10 + retorno.coluna);
                 board[i][retorno.coluna]=2;
-                ib.setImageResource(R.drawable.yellow);
-                int check=avaliador(board);
-                if(check==512){
-                    //COMPUTER WON
-                    Toast.makeText(mContext, "Computer won", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                else if(!moveleft(board)){
-                    Toast.makeText(mContext, "Tie", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                move=0;
-                myTurn.setVisibility(View.VISIBLE);
-                cpTurn.setVisibility(View.INVISIBLE);
+                final int final_i=i;
+                final int final_coluna=retorno.coluna;
+                t=new java.util.Timer();
+                t.schedule(new java.util.TimerTask() {
+                    int j=5;
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                run_handler_opp(j,final_coluna,final_i);
+                                j=j-1;
+                            }
+                        });
+                    }
+                },50,50);
                 return;
             }
         }
@@ -379,7 +451,7 @@ public class GameActivity extends AppCompatActivity {
     public int max_value(Nodes atual, int alpha, int beta){
         int v;
         int avaliador_value=avaliador(atual.disposição);
-        if(atual.profundidade==7 || avaliador_value==512 || avaliador_value==-512 || !moveleft(atual.disposição))
+        if(atual.profundidade==(look_ahead+2) || avaliador_value==512 || avaliador_value==-512 || !moveleft(atual.disposição))
             return avaliador_value;
         v=Integer.MIN_VALUE;
         for(int j=0;j<=6;j++){
@@ -400,7 +472,7 @@ public class GameActivity extends AppCompatActivity {
     public int min_value(Nodes atual,int alpha,int beta){
         int v;
         int avaliador_value=avaliador(atual.disposição);
-        if(atual.profundidade==7 || avaliador_value==512 || avaliador_value==-512 || !moveleft(atual.disposição))
+        if(atual.profundidade==(look_ahead+2) || avaliador_value==512 || avaliador_value==-512 || !moveleft(atual.disposição))
             return avaliador_value;
         v=Integer.MAX_VALUE;
         for(int j=0;j<=6;j++){
