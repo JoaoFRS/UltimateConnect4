@@ -3,14 +3,11 @@ package com.example.ultimateconnect4;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -33,6 +30,9 @@ public class GameActivity extends AppCompatActivity {
     ImageView myTurn, cpTurn;
     int look_ahead;
     private Timer t;
+    private final int animation_interval=75;
+    LinkedList<LinkedList<Integer>> final_position=new LinkedList<>();
+    private boolean timer_ativo=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,13 +153,16 @@ public class GameActivity extends AppCompatActivity {
             Toast.makeText(mContext, "Computer turn", Toast.LENGTH_SHORT).show();
             return;
         }
+        else if(move!=0)
+            return;
         for(int i=0;i<6;i++){
             if(board[i][col]==0) {
-                final ImageButton imButton = findViewById(i * 10 + col);
                 board[i][col] = 1;
                 final int final_i=i;
                 final int final_coluna=col;
+                move = 1;
                 t=new java.util.Timer();
+                timer_ativo=true;
                 t.schedule(new java.util.TimerTask() {
                     int j=5;
                     @Override
@@ -172,51 +175,68 @@ public class GameActivity extends AppCompatActivity {
                             }
                         });
                     }
-                },50,50);
+                },animation_interval,animation_interval);
                 return;
             }
         }
     }
-    public void run_handler_opp(int j,int col,int i){
-        final ImageButton but =  findViewById(j*10+col);
-        if(j==5) {
+    public void run_handler_opp(int j,int col,int i) {
+        if(j<i)
+            return;
+        final ImageButton but = findViewById(j * 10 + col);
+        if (j == 5) {
             but.setImageResource(R.drawable.yellow);
-        }
-        else{
-            final ImageButton but2 =  findViewById((j+1)*10+col);
+        } else {
+            final ImageButton but2 = findViewById((j + 1) * 10 + col);
             but2.setImageResource(R.drawable.elipse_1);
             but.setImageResource(R.drawable.yellow);
         }
-        if(j==i) {
+        if (j == i) {
             t.cancel();
-            int check=avaliador(board);
-            if(check==512){
-                runnable = new Runnable(){
+            int check = avaliador_final(board);
+            if (check == 512) {
+                move=2;
+                t = new java.util.Timer();
+                timer_ativo=true;
+                t.schedule(new java.util.TimerTask() {
+                    int time_to_end = 24;
+                    int aux = 0;
+                    @Override
                     public void run() {
-                        Intent lost =new Intent(mContext,LoseActivity.class);
-                        startActivity(lost);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                end_game_adv_won(time_to_end, aux);
+                                time_to_end = time_to_end - 1;
+                                aux = aux + 1;
+                                if (aux == 4)
+                                    aux = 0;
+                            }
+                        });
                     }
-                };
-                handler.postDelayed(runnable, interval);
-            }
-            else if(!moveleft(board)){
-                runnable = new Runnable(){
+                }, 150, 150);
+                //
+            } else if (!moveleft(board)) {
+                runnable = new Runnable() {
                     public void run() {
-                        Intent tie =new Intent(mContext,TieActivity.class);
+                        move=2;
+                        Intent tie = new Intent(mContext, TieActivity.class);
                         startActivity(tie);
                     }
                 };
                 handler.postDelayed(runnable, interval);
+            } else {
+                myTurn.setVisibility(View.VISIBLE);
+                cpTurn.setVisibility(View.INVISIBLE);
+                move = 0;
             }
-            move=0;
-            myTurn.setVisibility(View.VISIBLE);
-            cpTurn.setVisibility(View.INVISIBLE);
         }
+
     }
 
     public void run_handler(int j, int col,int i){
-        Log.d("j",String.valueOf(j));
-        Log.d("i",String.valueOf(i));
+        if(j<i)
+            return;
         final ImageButton but =  findViewById(j*10+col);
         if(j==5) {
             but.setImageResource(R.drawable.red);
@@ -228,23 +248,36 @@ public class GameActivity extends AppCompatActivity {
         }
         if(j==i){
             t.cancel();
-            move = 1;
             cpTurn.setVisibility(View.VISIBLE);
             myTurn.setVisibility(View.INVISIBLE);
-            int check = avaliador(board);
+            int check = avaliador_final(board);
             if (check == -512) {
-                //U WON
-                runnable = new Runnable(){
+                move=2;
+                t = new java.util.Timer();
+                timer_ativo=true;
+                t.schedule(new java.util.TimerTask() {
+                    int time_to_end = 32;
+                    int aux = 0;
+                    @Override
                     public void run() {
-                        Intent won =new Intent(mContext,WinActivity.class);
-                        startActivity(won);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                end_game_u_won(time_to_end, aux);
+                                time_to_end = time_to_end - 1;
+                                aux = aux + 1;
+                                if (aux == 4)
+                                    aux = 0;
+                            }
+                        });
                     }
-                };
-                handler.postDelayed(runnable, longinterval);
+                }, 150, 150);
+                //
             }
             else if(!moveleft(board)){
                 runnable = new Runnable(){
                     public void run() {
+                        move=2;
                         Intent tie =new Intent(mContext,TieActivity.class);
                         startActivity(tie);
                     }
@@ -263,7 +296,6 @@ public class GameActivity extends AppCompatActivity {
             }
         }
     }
-
     public int avaliador(int[][] aaa){
         int conta=0;
         int aux;
@@ -308,6 +340,114 @@ public class GameActivity extends AppCompatActivity {
                     aux=valor(help);
                     if(aux==512|| aux==-512)
                         return aux;
+                    conta+=aux;
+                }
+            }
+        }
+        if (move==0)
+            conta-=16;
+        else if (move==1)
+            conta+=16;
+        return conta;
+    }
+
+    public int avaliador_final(int[][] aaa){
+        int conta=0;
+        int aux;
+        int[] help =new int[4];
+        for(int i=0;i<6;i++){
+            for(int j=0;j<7;j++){
+                final_position.clear();
+                if(j<=3){
+                    LinkedList<Integer> a1=new LinkedList<>();
+                    LinkedList<Integer> a2=new LinkedList<>();
+                    LinkedList<Integer> a3=new LinkedList<>();
+                    LinkedList<Integer> a4=new LinkedList<>();
+                    a1.add(i);a1.add(j);
+                    a2.add(i);a2.add(j+1);
+                    a3.add(i);a3.add(j+2);
+                    a4.add(i);a4.add(j+3);
+                    help[0]=aaa[i][j];
+                    help[1]=aaa[i][j+1];
+                    help[2]=aaa[i][j+2];
+                    help[3]=aaa[i][j+3];
+                    aux=valor(help);
+                    if(aux==512|| aux==-512) {
+                        final_position.add(a1);
+                        final_position.add(a2);
+                        final_position.add(a3);
+                        final_position.add(a4);
+                        return aux;
+                    }
+                    conta+=aux;
+                }
+                if(i>=3){
+                    LinkedList<Integer> a1=new LinkedList<>();
+                    LinkedList<Integer> a2=new LinkedList<>();
+                    LinkedList<Integer> a3=new LinkedList<>();
+                    LinkedList<Integer> a4=new LinkedList<>();
+                    a1.add(i);a1.add(j);
+                    a2.add(i-1);a2.add(j);
+                    a3.add(i-2);a3.add(j);
+                    a4.add(i-3);a4.add(j);
+                    help[0]=aaa[i][j];
+                    help[1]=aaa[i-1][j];
+                    help[2]=aaa[i-2][j];
+                    help[3]=aaa[i-3][j];
+                    aux=valor(help);
+                    if(aux==512|| aux==-512) {
+                        final_position.add(a1);
+                        final_position.add(a2);
+                        final_position.add(a3);
+                        final_position.add(a4);
+                        return aux;
+                    }
+                    conta+=aux;
+                }
+                if(j<=3 && i>=3){
+                    LinkedList<Integer> a1=new LinkedList<>();
+                    LinkedList<Integer> a2=new LinkedList<>();
+                    LinkedList<Integer> a3=new LinkedList<>();
+                    LinkedList<Integer> a4=new LinkedList<>();
+                    a1.add(i);a1.add(j);
+                    a2.add(i-1);a2.add(j+1);
+                    a3.add(i-2);a3.add(j+2);
+                    a4.add(i-3);a4.add(j+3);
+                    help[0]=aaa[i][j];
+                    help[1]=aaa[i-1][j+1];
+                    help[2]=aaa[i-2][j+2];
+                    help[3]=aaa[i-3][j+3];
+                    aux=valor(help);
+                    if(aux==512|| aux==-512) {
+                        final_position.add(a1);
+                        final_position.add(a2);
+                        final_position.add(a3);
+                        final_position.add(a4);
+                        return aux;
+                    }
+                    conta+=aux;
+                }
+                if(j>=3 && i>=3){
+                    LinkedList<Integer> a1=new LinkedList<>();
+                    LinkedList<Integer> a2=new LinkedList<>();
+                    LinkedList<Integer> a3=new LinkedList<>();
+                    LinkedList<Integer> a4=new LinkedList<>();
+                    a1.add(i);a1.add(j);
+                    a2.add(i-1);a2.add(j-1);
+                    a3.add(i-2);a3.add(j-2);
+                    a4.add(i-3);a4.add(j-3);
+                    help[0]=aaa[i][j];
+                    help[1]=aaa[i-1][j-1];
+                    help[2]=aaa[i-2][j-2];
+                    help[3]=aaa[i-3][j-3];
+                    aux=valor(help);
+                    if(aux==512|| aux==-512) {
+                        final_position.add(a1);
+                        final_position.add(a2);
+                        final_position.add(a3);
+                        final_position.add(a4);
+                        return aux;
+                    }
                     conta+=aux;
                 }
             }
@@ -366,6 +506,7 @@ public class GameActivity extends AppCompatActivity {
         }
         return 10000000;
     }
+
     public boolean moveleft(int[][] aa) {
         for (int j = 0; j < 7; j++) {
             if (aa[5][j] == 0) return true;
@@ -400,7 +541,6 @@ public class GameActivity extends AppCompatActivity {
         return b;
     }
 
-    //Dificil
     public void alphabeta(Nodes atual) {
         Nodes retorno;
         int maximizar_retorno;
@@ -425,11 +565,11 @@ public class GameActivity extends AppCompatActivity {
         }
         for(int i=0;i<6;i++){
             if(board[i][retorno.coluna]==0){
-                ImageButton ib = findViewById(i * 10 + retorno.coluna);
                 board[i][retorno.coluna]=2;
                 final int final_i=i;
                 final int final_coluna=retorno.coluna;
                 t=new java.util.Timer();
+                timer_ativo=true;
                 t.schedule(new java.util.TimerTask() {
                     int j=5;
                     @Override
@@ -442,7 +582,7 @@ public class GameActivity extends AppCompatActivity {
                             }
                         });
                     }
-                },50,50);
+                },animation_interval,animation_interval);
                 return;
             }
         }
@@ -490,4 +630,65 @@ public class GameActivity extends AppCompatActivity {
     }
 
     //fim dificil
+    public void end_game_adv_won(int time_to_end,int index){
+        LinkedList<Integer> anterior;
+        LinkedList<Integer> atual;
+        if(time_to_end==0){
+            t.cancel();
+            timer_ativo=false;
+            Intent lost =new Intent(mContext,LoseActivity.class);
+            startActivity(lost);
+        }
+        atual=final_position.get(index);
+        if(index==0){
+            anterior=final_position.get(3);
+        }
+        else{
+            anterior=final_position.get(index-1);
+        }
+        final ImageButton im_anterior = findViewById(anterior.getFirst() * 10 + anterior.getLast());
+
+        final ImageButton im_atual = findViewById(atual.getFirst() * 10 + atual.getLast());
+        if(time_to_end==32)
+            im_atual.setImageResource(R.drawable.yellow_won);
+        else{
+            im_anterior.setImageResource(R.drawable.yellow);
+            im_atual.setImageResource(R.drawable.yellow_won);
+        }
+
+    }
+
+    public void end_game_u_won(int time_to_end,int index){
+        LinkedList<Integer> anterior;
+        LinkedList<Integer> atual;
+        if(time_to_end==0){
+            t.cancel();
+            timer_ativo=false;
+            Intent lost =new Intent(mContext,WinActivity.class);
+            startActivity(lost);
+        }
+        atual=final_position.get(index);
+        if(index==0){
+            anterior=final_position.get(3);
+        }
+        else{
+            anterior=final_position.get(index-1);
+        }
+        final ImageButton im_anterior = findViewById(anterior.getFirst() * 10 + anterior.getLast());
+
+        final ImageButton im_atual = findViewById(atual.getFirst() * 10 + atual.getLast());
+        if(time_to_end==24)
+            im_atual.setImageResource(R.drawable.red_won);
+        else{
+            im_anterior.setImageResource(R.drawable.red);
+            im_atual.setImageResource(R.drawable.red_won);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(timer_ativo)
+            t.cancel();
+    }
 }
