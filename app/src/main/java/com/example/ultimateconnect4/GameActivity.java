@@ -3,7 +3,9 @@ package com.example.ultimateconnect4;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -15,10 +17,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ultimateconnect4.Controllers.Database;
+import com.example.ultimateconnect4.Controllers.UtilizadorController;
+import com.example.ultimateconnect4.Models.Utilizador;
+
 import java.util.LinkedList;
 import java.util.Timer;
 
 public class GameActivity extends AppCompatActivity {
+    private boolean user_won=false;
     Context mContext=this;
     int move=0;
     String difficulty;
@@ -36,6 +43,9 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Database db=new Database(mContext);
+        UtilizadorController utilizadorController=new UtilizadorController(db);
+        Utilizador user=utilizadorController.getUtilizador();
         try
         {
             this.getSupportActionBar().hide();
@@ -52,14 +62,20 @@ public class GameActivity extends AppCompatActivity {
         TextView num_vit_computer=findViewById(R.id.num_vitorias_computador);
         if(difficulty.equals("easy")){
             change_color.setBackgroundColor(Color.parseColor("#47a64a"));
+            num_vit_me.setText("(" + user.getM_vitorias_facil() + ")");
+            num_vit_computer.setText("("+ user.getM_derrotas_facil() + ")");
             look_ahead=1;
         }
         if(difficulty.equals("medium")){
             change_color.setBackgroundColor(Color.parseColor("#bbbf47"));
+            num_vit_me.setText("(" + user.getM_vitorias_media() + ")");
+            num_vit_computer.setText("("+ user.getM_derrotas_media() + ")");
             look_ahead=3;
         }
         if(difficulty.equals("hard")){
             change_color.setBackgroundColor(Color.parseColor("#CD3B3B"));
+            num_vit_me.setText("(" + user.getM_vitorias_dificil() + ")");
+            num_vit_computer.setText("("+ user.getM_derrotas_dificil() + ")");
             look_ahead=5;
         }
         LinearLayout l0=findViewById(R.id.l0); //j=0
@@ -200,6 +216,21 @@ public class GameActivity extends AppCompatActivity {
             t.cancel();
             int check = avaliador_final(board);
             if (check == 512) {
+                Database db=new Database(mContext);
+                UtilizadorController utilizadorController=new UtilizadorController(db);
+                Utilizador user=utilizadorController.getUtilizador();
+                if(difficulty.equals("easy")){
+                    user.setM_derrotas_facil(user.getM_derrotas_facil()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
+                if(difficulty.equals("medium")){
+                    user.setM_derrotas_media(user.getM_derrotas_media()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
+                if(difficulty.equals("hard")){
+                    user.setM_derrotas_dificil(user.getM_derrotas_dificil()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
                 move=2;
                 t = new java.util.Timer();
                 timer_ativo=true;
@@ -257,6 +288,22 @@ public class GameActivity extends AppCompatActivity {
             myTurn.setVisibility(View.INVISIBLE);
             int check = avaliador_final(board);
             if (check == -512) {
+                user_won=true;
+                Database db=new Database(mContext);
+                UtilizadorController utilizadorController=new UtilizadorController(db);
+                Utilizador user=utilizadorController.getUtilizador();
+                if(difficulty.equals("easy")){
+                    user.setM_vitorias_facil(user.getM_vitorias_facil()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
+                if(difficulty.equals("medium")){
+                    user.setM_vitorias_media(user.getM_vitorias_media()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
+                if(difficulty.equals("hard")){
+                    user.setM_vitorias_dificil(user.getM_vitorias_dificil()+1);
+                    utilizadorController.updateUtilizador(user);
+                }
                 move=2;
                 t = new java.util.Timer();
                 timer_ativo=true;
@@ -669,8 +716,8 @@ public class GameActivity extends AppCompatActivity {
         if(time_to_end==0){
             t.cancel();
             timer_ativo=false;
-            Intent lost =new Intent(mContext,WinActivity.class);
-            startActivity(lost);
+            Intent win =new Intent(mContext,WinActivity.class);
+            startActivity(win);
         }
         atual=final_position.get(index);
         if(index==0){
@@ -693,8 +740,45 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //TODO derrot na db
+        if(!user_won) {
+            Database db = new Database(mContext);
+            UtilizadorController utilizadorController = new UtilizadorController(db);
+            Utilizador user = utilizadorController.getUtilizador();
+            if (difficulty.equals("easy")) {
+                user.setM_derrotas_facil(user.getM_derrotas_facil() + 1);
+                utilizadorController.updateUtilizador(user);
+            }
+            if (difficulty.equals("medium")) {
+                user.setM_derrotas_media(user.getM_derrotas_media() + 1);
+                utilizadorController.updateUtilizador(user);
+            }
+            if (difficulty.equals("hard")) {
+                user.setM_derrotas_dificil(user.getM_derrotas_dificil() + 1);
+                utilizadorController.updateUtilizador(user);
+            }
+        }
         if(timer_ativo)
             t.cancel();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(!user_won) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle("Quit?")
+                    .setMessage("Leaving now will count as a lost. Are u sure u want to quit?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        }
+        else
+            finish();
     }
 }

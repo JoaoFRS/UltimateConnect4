@@ -10,11 +10,24 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import com.example.ultimateconnect4.Controllers.Database;
+import com.example.ultimateconnect4.Controllers.DatabaseBuilder;
+import com.example.ultimateconnect4.Controllers.UtilizadorController;
+import com.example.ultimateconnect4.Models.Utilizador;
+
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
     Context mContex=this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        boolean doesDatabaseExist = DatabaseExist(this, "Database");
+        if(!doesDatabaseExist) {
+            Database db = new Database(mContex);
+            DatabaseBuilder databaseBuilder=new DatabaseBuilder(db);
+            databaseBuilder.builduser();
+        }
         try
         {
             this.getSupportActionBar().hide();
@@ -48,5 +61,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+    }
+    private static boolean DatabaseExist(Context context, String dbName) {
+        File dbFile = context.getDatabasePath(dbName);
+        return dbFile.exists();
     }
 }
