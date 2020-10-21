@@ -36,6 +36,11 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try
+        {
+            this.getSupportActionBar().hide();
+        }
+        catch (NullPointerException e){}
         setContentView(R.layout.activity_game);
         Intent intent = getIntent();
         difficulty= intent.getStringExtra("difficulty");
@@ -688,6 +693,7 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //TODO derrot na db
         if(timer_ativo)
             t.cancel();
     }

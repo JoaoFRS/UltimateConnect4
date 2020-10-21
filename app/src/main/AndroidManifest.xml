@@ -10,14 +10,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".LoseActivity"
-            android:noHistory = "true"/>
+            android:noHistory = "true"
+            android:screenOrientation = "portrait"/>
         <activity android:name=".TieActivity"
-            android:noHistory = "true"/>
+            android:noHistory = "true"
+            android:screenOrientation = "portrait"/>
         <activity android:name=".WinActivity"
-            android:noHistory = "true"/>
+            android:noHistory = "true"
+            android:screenOrientation = "portrait"/>
         <activity android:name=".GameActivity"
-            android:noHistory = "true"/>
-        <activity android:name=".MainActivity">
+            android:noHistory = "true"
+            android:screenOrientation = "portrait"/>
+        <activity android:name=".MainActivity"
+            android:screenOrientation = "portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

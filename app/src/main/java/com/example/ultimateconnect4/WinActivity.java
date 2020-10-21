@@ -18,6 +18,11 @@ public class WinActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try
+        {
+            this.getSupportActionBar().hide();
+        }
+        catch (NullPointerException e){}
         setContentView(R.layout.activity_win);
         runnable = new Runnable(){
             public void run() {
