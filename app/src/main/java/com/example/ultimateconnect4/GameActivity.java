@@ -216,6 +216,7 @@ public class GameActivity extends AppCompatActivity {
             t.cancel();
             int check = avaliador_final(board);
             if (check == 512) {
+                user_won=true;
                 Database db=new Database(mContext);
                 UtilizadorController utilizadorController=new UtilizadorController(db);
                 Utilizador user=utilizadorController.getUtilizador();
