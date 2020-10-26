@@ -16,11 +16,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.ultimateconnect4.Controllers.Database;
 import com.example.ultimateconnect4.Controllers.UtilizadorController;
+import com.example.ultimateconnect4.Models.Nodes;
 import com.example.ultimateconnect4.Models.Utilizador;
-
 import java.util.LinkedList;
 import java.util.Timer;
 
@@ -40,6 +39,7 @@ public class GameActivity extends AppCompatActivity {
     private final int animation_interval=75;
     LinkedList<LinkedList<Integer>> final_position=new LinkedList<>();
     private boolean timer_ativo=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

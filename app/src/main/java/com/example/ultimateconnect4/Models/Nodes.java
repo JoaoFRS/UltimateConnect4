@@ -1,18 +1,18 @@
-package com.example.ultimateconnect4;
+package com.example.ultimateconnect4.Models;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class Nodes{
-    int custo;
-    double numerovitorias;
-    double vezesvisitado;
-    int profundidade;
-    List<Nodes> filhos;
-    Nodes pai;
-    int[][] disposição;
-    int turno;
-    int coluna;
+    public int custo;
+    public double numerovitorias;
+    public double vezesvisitado;
+    public int profundidade;
+    public List<Nodes> filhos;
+    public Nodes pai;
+    public int[][] disposição;
+    public int turno;
+    public int coluna;
 
 
     public Nodes(int profundidade,int[][] disposição){
