@@ -14,9 +14,6 @@ public class Nodes{
     int turno;
     int coluna;
 
-    public Nodes(){
-
-    }
 
     public Nodes(int profundidade,int[][] disposição){
         this.profundidade=profundidade;
@@ -24,10 +21,7 @@ public class Nodes{
     }
 
     public Nodes(int profundidade,int[][] disposição,int turno){
-        //this.custo=custo;
         this.profundidade=profundidade;
-        //this.filhos=filhos;
-        //this.pai=pai;
         this.disposição=disposição;
         this.turno=turno;
 
@@ -36,9 +30,7 @@ public class Nodes{
 
     public Nodes(int custo, int profundidade, int[][] disposição,int turno,int coluna ){
         this.custo=custo;
-        this.profundidade=profundidade;
-        //this.filhos=filhos;
-        //this.pai=pai;
+        this.profundidade=profundidade;;
         this.disposição=disposição;
         this.turno=turno;
         this.coluna=coluna;
@@ -49,7 +41,6 @@ public class Nodes{
         this.custo = custo;
         this.profundidade = profundidade;
         this.filhos = filhos;
-        //this.pai=pai;
         this.disposição = disposição;
         this.turno = turno;
 
@@ -64,14 +55,5 @@ public class Nodes{
         this.disposição=disposição;
         this.turno=turno;
 
-    }
-    public static void updateStatus(int value,Nodes node){
-        if (value==0){
-            node.vezesvisitado++;
-        }
-        if(value==1){
-            node.vezesvisitado++;
-            node.numerovitorias++;
-        }
     }
 }

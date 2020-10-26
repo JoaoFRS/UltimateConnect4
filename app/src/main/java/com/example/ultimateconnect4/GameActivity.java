@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.Timer;
 
 public class GameActivity extends AppCompatActivity {
-    private boolean user_won=false;
+    private boolean game_done=false;
     Context mContext=this;
     int move=0;
     String difficulty;
@@ -216,7 +216,7 @@ public class GameActivity extends AppCompatActivity {
             t.cancel();
             int check = avaliador_final(board);
             if (check == 512) {
-                user_won=true;
+                game_done=true;
                 Database db=new Database(mContext);
                 UtilizadorController utilizadorController=new UtilizadorController(db);
                 Utilizador user=utilizadorController.getUtilizador();
@@ -256,6 +256,7 @@ public class GameActivity extends AppCompatActivity {
             } else if (!moveleft(board)) {
                 runnable = new Runnable() {
                     public void run() {
+                        game_done=true;
                         move=2;
                         Intent tie = new Intent(mContext, TieActivity.class);
                         startActivity(tie);
@@ -289,7 +290,7 @@ public class GameActivity extends AppCompatActivity {
             myTurn.setVisibility(View.INVISIBLE);
             int check = avaliador_final(board);
             if (check == -512) {
-                user_won=true;
+                game_done=true;
                 Database db=new Database(mContext);
                 UtilizadorController utilizadorController=new UtilizadorController(db);
                 Utilizador user=utilizadorController.getUtilizador();
@@ -330,6 +331,7 @@ public class GameActivity extends AppCompatActivity {
             else if(!moveleft(board)){
                 runnable = new Runnable(){
                     public void run() {
+                        game_done=true;
                         move=2;
                         Intent tie =new Intent(mContext,TieActivity.class);
                         startActivity(tie);
@@ -741,7 +743,7 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(!user_won) {
+        if(!game_done) {
             Database db = new Database(mContext);
             UtilizadorController utilizadorController = new UtilizadorController(db);
             Utilizador user = utilizadorController.getUtilizador();
@@ -764,7 +766,7 @@ public class GameActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(!user_won) {
+        if(!game_done) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Quit?")
